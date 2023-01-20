@@ -1,0 +1,7 @@
+# Group Project Internet of Things
+
+## Members
+GUPTA SANIL 
+BARTSCH LIAM DANIEL
+FARRELL OISIN MICHAEL 
+KAUSHIK TANMAY
