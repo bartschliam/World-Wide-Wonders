@@ -31,33 +31,58 @@ class _RootPageState extends State<RootPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+          scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255)),
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('IoT Bike Lock'),
-        ),
         body: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: TextField(
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'User Name',
-                      hintText: 'Enter valid mail id as abc@gmail.com'),
+            children: [
+              const Padding(padding: EdgeInsets.only(top: 50)),
+              Image.asset('assets/images/ui_map.JPG'),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: const [
+                    Text(
+                      "Welcome to the future of Bicycle Safety!",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Password',
-                      hintText: 'Enter your secure password'),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              fixedSize: const Size(200, 60)),
+                          child: const Text(
+                            'Sign Up',
+                          ),
+                          onPressed: () {},
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              fixedSize: const Size(200, 60)),
+                          child: const Text(
+                            'Login',
+                          ),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10)
+                  ],
                 ),
-              ),
+              )
             ],
           ),
         ),
