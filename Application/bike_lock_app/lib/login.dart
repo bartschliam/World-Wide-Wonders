@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'home_page.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -8,8 +10,20 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final userNameController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    userNameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    bool show = false;
     return Scaffold(
       appBar: AppBar(
         title: const Text('IoT Bike Lock Login Page'),
@@ -27,19 +41,21 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(15),
+          Padding(
+            padding: const EdgeInsets.all(15),
             child: TextField(
-              decoration: InputDecoration(
+              controller: userNameController,
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Email',
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(15),
+          Padding(
+            padding: const EdgeInsets.all(15),
             child: TextField(
-              decoration: InputDecoration(
+              controller: passwordController,
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Password',
               ),
@@ -62,7 +78,12 @@ class _LoginPageState extends State<LoginPage> {
                 "Login",
                 style: TextStyle(color: Colors.white, fontSize: 25),
               ),
-              onPressed: () {},
+              onPressed: () {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => const HomePage()),
+                // );
+              },
             ),
           ),
           const SizedBox(
@@ -71,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
           TextButton(
             onPressed: () {},
             child: const Text('New User? Create Account'),
-          )
+          ),
         ],
       )),
     );
