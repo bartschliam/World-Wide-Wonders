@@ -1,16 +1,14 @@
-import 'package:bike_lock_app/signup_page.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'home_page.dart';
-
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignupPageState extends State<SignupPage> {
   final userNameController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -26,20 +24,15 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('IoT Bike Lock Login Page'),
+        title: const Text('IoT Bike Lock Signup Page'),
       ),
       body: SingleChildScrollView(
           child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 60.0),
+          const Padding(
+            padding: EdgeInsets.only(top: 60.0),
             child: Center(
-              child: SizedBox(
-                width: 200,
-                height: 150,
-                child: Image.asset('assets/images/logo.png'),
-              ),
-            ),
+                child: Text("Welcome, we're glad to have you on board!")),
           ),
           Padding(
             padding: const EdgeInsets.all(15),
@@ -61,13 +54,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'Forgot Password',
-              style: TextStyle(color: Colors.blue, fontSize: 15),
-            ),
-          ),
           Container(
             height: 50,
             width: 250,
@@ -75,31 +61,31 @@ class _LoginPageState extends State<LoginPage> {
                 color: Colors.blue, borderRadius: BorderRadius.circular(20)),
             child: TextButton(
               child: const Text(
-                "Login",
+                "Sign Up",
                 style: TextStyle(color: Colors.white, fontSize: 25),
               ),
               onPressed: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => const HomePage()),
-                // );
+                final username = userNameController.text;
+                final password = passwordController.text;
+
+                createUser(username: username, password: password);
               },
             ),
           ),
           const SizedBox(
             height: 130,
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SignupPage()),
-              );
-            },
-            child: const Text('New User? Create Account'),
-          ),
         ],
       )),
     );
+  }
+
+  Future createUser(
+      {required String username, required String password}) async {
+    final docUser =
+        FirebaseFirestore.instance.collection("Users").doc(username);
+
+    final userData = {username: username, password: password};
+    await docUser.set(userData);
   }
 }
