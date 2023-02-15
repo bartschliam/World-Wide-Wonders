@@ -26,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final navigator = Navigator.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('IoT Bike Lock Login Page'),
@@ -89,8 +90,7 @@ class _LoginPageState extends State<LoginPage> {
                     username: username, passsword: passsword);
 
                 if (statusCode == 202) {
-                  Navigator.push(
-                    context,
+                  navigator.push(
                     MaterialPageRoute(builder: (context) => const HomePage()),
                   );
                 }
