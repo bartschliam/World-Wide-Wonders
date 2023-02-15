@@ -16,6 +16,8 @@ class _LoginPageState extends State<LoginPage> {
   final userNameController = TextEditingController();
   final passwordController = TextEditingController();
 
+  bool promptIncorrectPassword = false;
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -64,6 +66,14 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
+          Padding(
+              padding: const EdgeInsets.all(15),
+              child: promptIncorrectPassword
+                  ? const Text(
+                      "Incorrect Password!",
+                      style: TextStyle(color: Colors.red),
+                    )
+                  : const SizedBox()),
           TextButton(
             onPressed: () {},
             child: const Text(
@@ -93,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                   navigator.push(
                     MaterialPageRoute(builder: (context) => const HomePage()),
                   );
-                }
+                } else if (statusCode == 401) {}
               },
             ),
           ),
