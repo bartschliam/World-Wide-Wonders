@@ -1,5 +1,7 @@
 import 'package:bike_lock_app/signup_page.dart';
+import 'package:bike_lock_app/user.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'home_page.dart';
 
@@ -78,11 +80,20 @@ class _LoginPageState extends State<LoginPage> {
                 "Login",
                 style: TextStyle(color: Colors.white, fontSize: 25),
               ),
-              onPressed: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => const HomePage()),
-                // );
+              onPressed: () async {
+                debugPrint("login");
+                var username = userNameController.text;
+                var passsword = passwordController.text;
+
+                int statusCode = await validUsernameAndPassword(
+                    username: username, passsword: passsword);
+
+                if (statusCode == 202) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
+                  );
+                }
               },
             ),
           ),
@@ -101,5 +112,31 @@ class _LoginPageState extends State<LoginPage> {
         ],
       )),
     );
+  }
+
+  Future<int> validUsernameAndPassword(
+      {required String username, required String passsword}) async {
+    final ref = FirebaseFirestore.instance
+        .collection("Users")
+        .doc(username)
+        .withConverter(
+          fromFirestore: User.fromFirestore,
+          toFirestore: (User user, _) => user.toFirestore(),
+        );
+
+    final docSnap = await ref.get();
+    final user = docSnap.data();
+
+    if (user != null) {
+      if (user.password == passsword) {
+        debugPrint("User does exist and password IS CORRECT!");
+        return 202;
+      } else {
+        debugPrint("User does exist but WRONG PASSWORD!");
+        return 401;
+      }
+    }
+    debugPrint("User does not exist!");
+    return 500;
   }
 }
