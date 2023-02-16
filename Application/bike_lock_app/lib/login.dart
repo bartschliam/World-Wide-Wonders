@@ -18,6 +18,9 @@ class _LoginPageState extends State<LoginPage> {
 
   bool promptIncorrectPassword = false;
 
+  bool incorrectUsername = false;
+  bool incorrectPassword = false;
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -47,33 +50,29 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(15.0),
             child: TextField(
               controller: userNameController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Email',
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                labelText: 'email',
+                errorText: incorrectUsername
+                    ? 'User does not exist. Create Account'
+                    : null,
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(15.0),
             child: TextField(
               controller: passwordController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Password',
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                labelText: 'password',
+                errorText: incorrectPassword ? 'password not match' : null,
               ),
             ),
           ),
-          Padding(
-              padding: const EdgeInsets.all(15),
-              child: promptIncorrectPassword
-                  ? const Text(
-                      "Incorrect Password!",
-                      style: TextStyle(color: Colors.red),
-                    )
-                  : const SizedBox()),
           TextButton(
             onPressed: () {},
             child: const Text(
@@ -92,18 +91,28 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(color: Colors.white, fontSize: 25),
               ),
               onPressed: () async {
-                debugPrint("login");
                 var username = userNameController.text;
                 var passsword = passwordController.text;
 
                 int statusCode = await validUsernameAndPassword(
                     username: username, passsword: passsword);
-
+                debugPrint("$statusCode");
                 if (statusCode == 202) {
+                  incorrectUsername = false;
+                  incorrectPassword = false;
+                  userNameController.clear();
+                  passwordController.clear();
                   navigator.push(
                     MaterialPageRoute(builder: (context) => const HomePage()),
                   );
-                } else if (statusCode == 401) {}
+                } else if (statusCode == 401) {
+                  incorrectPassword = true;
+                  passwordController.clear();
+                } else {
+                  incorrectUsername = true;
+                  userNameController.clear();
+                  debugPrint("made it here");
+                }
               },
             ),
           ),
@@ -145,8 +154,9 @@ class _LoginPageState extends State<LoginPage> {
         debugPrint("User does exist but WRONG PASSWORD!");
         return 401;
       }
+    } else {
+      debugPrint("User does not exist!");
+      return 500;
     }
-    debugPrint("User does not exist!");
-    return 500;
   }
 }
