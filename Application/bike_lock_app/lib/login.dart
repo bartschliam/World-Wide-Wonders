@@ -94,8 +94,6 @@ class _LoginPageState extends State<LoginPage> {
                 var username = userNameController.text;
                 var passsword = passwordController.text;
 
-                debugPrint("$username:$passsword");
-
                 if (validateUsernameAndPassword(username, passsword)) {
                   int statusCode = await checkUsernameAndPassword(
                       username: username, passsword: passsword);
@@ -171,21 +169,20 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  bool validateUsernameAndPassword(String username, String passsword) {
+  bool validateUsernameAndPassword(String username, String password) {
     if (username == "") {
       setState(() {
         usernameErrorMSG = "Invalid username, cannnot be blank";
         incorrectUsername = true;
       });
-      return false;
     }
-    if (passsword == "") {
+    if (password == "") {
       setState(() {
         passwordErrorMSG = "Invalid password, cannnot be blank";
         incorrectPassword = true;
       });
-      return false;
     }
-    return true;
+
+    return !(username == "" || password == "");
   }
 }
