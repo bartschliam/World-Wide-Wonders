@@ -1,3 +1,5 @@
+
+
 int led = 2;
 void setup() {
   pinMode(led, OUTPUT);
@@ -7,9 +9,9 @@ void setup() {
 void loop() {
   digitalWrite(led, HIGH);
   Serial.print("Welcome to IoT Development...");
-  delay(1000);
+  delay(200);
 
   digitalWrite(led, LOW);
   Serial.println("with ESP32");
-  delay(1000);
+  delay(200);
 }
