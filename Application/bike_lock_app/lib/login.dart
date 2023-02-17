@@ -20,6 +20,8 @@ class _LoginPageState extends State<LoginPage> {
 
   bool incorrectUsername = false;
   bool incorrectPassword = false;
+  String usernameErrorMSG = "";
+  String passwordErrorMSG = "";
 
   @override
   void dispose() {
@@ -56,9 +58,7 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 labelText: 'email',
-                errorText: incorrectUsername
-                    ? 'User does not exist. Create Account'
-                    : null,
+                errorText: incorrectUsername ? usernameErrorMSG : null,
               ),
             ),
           ),
@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 labelText: 'password',
-                errorText: incorrectPassword ? 'password not match' : null,
+                errorText: incorrectPassword ? passwordErrorMSG : null,
               ),
             ),
           ),
@@ -94,24 +94,35 @@ class _LoginPageState extends State<LoginPage> {
                 var username = userNameController.text;
                 var passsword = passwordController.text;
 
-                int statusCode = await validUsernameAndPassword(
-                    username: username, passsword: passsword);
-                debugPrint("$statusCode");
-                if (statusCode == 202) {
-                  incorrectUsername = false;
-                  incorrectPassword = false;
-                  userNameController.clear();
-                  passwordController.clear();
-                  navigator.push(
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                  );
-                } else if (statusCode == 401) {
-                  incorrectPassword = true;
-                  passwordController.clear();
-                } else {
-                  incorrectUsername = true;
-                  userNameController.clear();
-                  debugPrint("made it here");
+                debugPrint("$username:$passsword");
+
+                if (validateUsernameAndPassword(username, passsword)) {
+                  int statusCode = await checkUsernameAndPassword(
+                      username: username, passsword: passsword);
+
+                  if (statusCode == 202) {
+                    setState(() {
+                      incorrectUsername = false;
+                      incorrectPassword = false;
+                    });
+                    userNameController.clear();
+                    passwordController.clear();
+                    navigator.push(
+                      MaterialPageRoute(builder: (context) => const HomePage()),
+                    );
+                  } else if (statusCode == 401) {
+                    setState(() {
+                      passwordErrorMSG = "Incorrect password, please try again";
+                      incorrectPassword = true;
+                    });
+                    passwordController.clear();
+                  } else {
+                    setState(() {
+                      usernameErrorMSG = "User does not exist, please sign up!";
+                      incorrectUsername = true;
+                    });
+                    userNameController.clear();
+                  }
                 }
               },
             ),
@@ -133,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<int> validUsernameAndPassword(
+  Future<int> checkUsernameAndPassword(
       {required String username, required String passsword}) async {
     final ref = FirebaseFirestore.instance
         .collection("Users")
@@ -158,5 +169,23 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint("User does not exist!");
       return 500;
     }
+  }
+
+  bool validateUsernameAndPassword(String username, String passsword) {
+    if (username == "") {
+      setState(() {
+        usernameErrorMSG = "Invalid username, cannnot be blank";
+        incorrectUsername = true;
+      });
+      return false;
+    }
+    if (passsword == "") {
+      setState(() {
+        passwordErrorMSG = "Invalid password, cannnot be blank";
+        incorrectPassword = true;
+      });
+      return false;
+    }
+    return true;
   }
 }
