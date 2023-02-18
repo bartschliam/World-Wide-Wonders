@@ -1,5 +1,6 @@
 #include <FirebaseESP32.h>
 #include "BLEDevice.h"
+#include <Arduino.h>
 #define LED 2
 // 1. Define the WiFi credentials */
 
@@ -29,6 +30,12 @@ FirebaseData RfirebaseData;
 
 int r;
 unsigned long duration = 0;
+
+class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
+  void onResult(BLEAdvertisedDevice advertisedDevice) {
+    Serial.printf("Address: %s, Name: %s\n", advertisedDevice.getAddress().toString().c_str(), advertisedDevice.getName().c_str());
+  }
+};
 
 void control_led()
 {
@@ -76,9 +83,3 @@ void loop()
   control_led();
   
 }
-
-class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
-  void onResult(BLEAdvertisedDevice advertisedDevice) {
-    Serial.printf("Address: %s, Name: %s\n", advertisedDevice.getAddress().toString().c_str(), advertisedDevice.getName().c_str());
-  }
-};
