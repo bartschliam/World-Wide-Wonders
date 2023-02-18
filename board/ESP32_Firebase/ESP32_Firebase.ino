@@ -33,11 +33,28 @@ FirebaseData RfirebaseData;
 
 int r;
 unsigned long duration = 0;
-String knownBLEAddresses[] = {};
+String knownBLEAddresses[] = {"55:c8:d4:47:ac:7c"};
 
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
   void onResult(BLEAdvertisedDevice advertisedDevice) {
-    Serial.printf("Address: %s, Name: %s\n", advertisedDevice.getAddress().toString().c_str(), advertisedDevice.getName().c_str());
+    for (int i = 0; i < (sizeof(knownBLEAddresses) / sizeof(knownBLEAddresses[0])); i++)
+    {
+      Serial.println("*************Start**************");
+      Serial.println(sizeof(knownBLEAddresses));
+      Serial.println(sizeof(knownBLEAddresses[0]));
+      Serial.println(sizeof(knownBLEAddresses)/sizeof(knownBLEAddresses[0]));
+      Serial.println(advertisedDevice.getAddress().toString().c_str());
+      Serial.println(knownBLEAddresses[i].c_str());
+      Serial.println("*************End**************");
+      if (strcmp(advertisedDevice.getAddress().toString().c_str(), knownBLEAddresses[i].c_str()) == 0)
+      {
+        device_found = true;
+        break;
+      }
+      else
+        device_found = false;
+    }
+    Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
   }
 };
 
@@ -73,17 +90,23 @@ void setup()
 
   Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
   duration = millis();
+  
   Serial.println("Scanning...");
   BLEDevice::init("");
-  BLEScan* pBLEScan = BLEDevice::getScan();
+  pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(true);
-  pBLEScan->start(30);
-  
 }
 
 void loop()
 {
   control_led();
-  
+  BLEScanResults foundsDevices = pBLEScan->start(30, false);
+  for(int i = 0; i<foundDevices.count(); i++) {
+    BLEAdvertisedDevice device = foundDevices.getDevice(i);
+    int rrsi = device.getRSSI();
+    Serial.print("RSSI:");
+    Serial.print(rssi)
+  }
+  pBLEScan->clearResults();
 }
