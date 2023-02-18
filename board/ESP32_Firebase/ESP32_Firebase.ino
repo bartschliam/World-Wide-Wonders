@@ -1,5 +1,8 @@
 #include <FirebaseESP32.h>
 #include "BLEDevice.h"
+#include <BLEUtils.h>
+#include <BLEScan.h>
+#include <BLEAdvertisedDevice.h>
 #include <Arduino.h>
 #define LED 2
 // 1. Define the WiFi credentials */
@@ -30,6 +33,7 @@ FirebaseData RfirebaseData;
 
 int r;
 unsigned long duration = 0;
+String knownBLEAddresses[] = {};
 
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
   void onResult(BLEAdvertisedDevice advertisedDevice) {
