@@ -1,4 +1,5 @@
 #include <FirebaseESP32.h>
+#include "BLEDevice.h"
 #define LED 2
 // 1. Define the WiFi credentials */
 
@@ -61,6 +62,12 @@ void setup()
 
   Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
   duration = millis();
+  Serial.println("Scanning...");
+  BLEDevice::init("");
+  BLEScan* pBLEScan = BLEDevice::getScan();
+  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+  pBLEScan->setActiveScan(true);
+  pBLEScan->start(30);
   
 }
 
@@ -69,3 +76,9 @@ void loop()
   control_led();
   
 }
+
+class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
+  void onResult(BLEAdvertisedDevice advertisedDevice) {
+    Serial.printf("Address: %s, Name: %s\n", advertisedDevice.getAddress().toString().c_str(), advertisedDevice.getName().c_str());
+  }
+};
