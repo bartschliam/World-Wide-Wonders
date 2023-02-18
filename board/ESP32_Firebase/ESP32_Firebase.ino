@@ -1,8 +1,14 @@
 #include <FirebaseESP32.h>
 #define LED 2
 // 1. Define the WiFi credentials */
+
+// Liam's Wifi
 #define WIFI_SSID "VODAFONE-B114"
 #define WIFI_PASSWORD "tdE6KAtmqChRYgrX"
+
+// TCD Wifi
+// #define WIFI_SSID "TCD-Wifi"
+// #define WIFI_PASSWORD "password?"
 
 // For the following credentials, see examples/Authentications/SignInAsUser/EmailPassword/EmailPassword.ino
 
