@@ -34,18 +34,15 @@ FirebaseData RfirebaseData;
 int r;
 unsigned long duration = 0;
 String knownBLEAddresses[] = {"55:c8:d4:47:ac:7c"};
+bool device_found;
+BLEScan* pBLEScan;
 
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
   void onResult(BLEAdvertisedDevice advertisedDevice) {
     for (int i = 0; i < (sizeof(knownBLEAddresses) / sizeof(knownBLEAddresses[0])); i++)
     {
-      Serial.println("*************Start**************");
-      Serial.println(sizeof(knownBLEAddresses));
-      Serial.println(sizeof(knownBLEAddresses[0]));
-      Serial.println(sizeof(knownBLEAddresses)/sizeof(knownBLEAddresses[0]));
       Serial.println(advertisedDevice.getAddress().toString().c_str());
       Serial.println(knownBLEAddresses[i].c_str());
-      Serial.println("*************End**************");
       if (strcmp(advertisedDevice.getAddress().toString().c_str(), knownBLEAddresses[i].c_str()) == 0)
       {
         device_found = true;
@@ -101,12 +98,13 @@ void setup()
 void loop()
 {
   control_led();
-  BLEScanResults foundsDevices = pBLEScan->start(30, false);
-  for(int i = 0; i<foundDevices.count(); i++) {
+  BLEScanResults foundDevices = pBLEScan->start(30, false);
+  Serial.print(foundDevices.getCount());
+  for(int i = 0; i<foundDevices.getCount(); i++) {
     BLEAdvertisedDevice device = foundDevices.getDevice(i);
-    int rrsi = device.getRSSI();
+    int rssi = device.getRSSI();
     Serial.print("RSSI:");
-    Serial.print(rssi)
+    Serial.print(rssi);
   }
   pBLEScan->clearResults();
 }
