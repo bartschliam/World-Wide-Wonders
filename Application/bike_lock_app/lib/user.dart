@@ -3,10 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class User {
   final String? username;
   final String? password;
+  Map<String, dynamic>? friends;
 
   User({
     this.username,
     this.password,
+    this.friends,
   });
 
   factory User.fromFirestore(
@@ -15,8 +17,9 @@ class User {
   ) {
     final data = snapshot.data();
     return User(
-      username: data?['username'],
-      password: data?['password'],
+      username: data?['Credentials']['username'],
+      password: data?['Credentials']['password'],
+      friends: data?['Friends'],
     );
   }
 

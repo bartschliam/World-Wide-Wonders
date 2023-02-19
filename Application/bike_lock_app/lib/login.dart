@@ -105,8 +105,13 @@ class _LoginPageState extends State<LoginPage> {
                     });
                     userNameController.clear();
                     passwordController.clear();
+
+                    User currentUser = await getUser(username);
+
                     navigator.push(
-                      MaterialPageRoute(builder: (context) => const HomePage()),
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              HomePage(currentUser: currentUser)),
                     );
                   } else if (statusCode == 401) {
                     setState(() {
@@ -184,5 +189,23 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     return !(username == "" || password == "");
+  }
+
+  Future<User> getUser(String username) async {
+    final ref = FirebaseFirestore.instance
+        .collection("Users")
+        .doc(username)
+        .withConverter(
+          fromFirestore: User.fromFirestore,
+          toFirestore: (User user, _) => user.toFirestore(),
+        );
+
+    final docSnap = await ref.get();
+    final user = docSnap.data();
+
+    return User(
+        username: user?.username,
+        password: user?.password,
+        friends: user?.friends);
   }
 }

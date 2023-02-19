@@ -108,7 +108,10 @@ class _SignupPageState extends State<SignupPage> {
     final docUser =
         FirebaseFirestore.instance.collection("Users").doc(username);
 
-    final userData = {"username": username, "password": password};
+    final userData = {
+      "Credentials": {"username": username, "password": password},
+      "Friends": {"friends": {}, "request_in": {}, "request_out": {}}
+    };
     await docUser.set(userData);
   }
 

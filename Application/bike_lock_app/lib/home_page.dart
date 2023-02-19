@@ -1,21 +1,39 @@
+import 'package:bike_lock_app/friend_page.dart';
 import 'package:bike_lock_app/lock_map.dart';
+import 'package:bike_lock_app/unlock_page.dart';
+import 'package:bike_lock_app/user.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final User currentUser;
+  const HomePage({super.key, required this.currentUser});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final List<Widget> widgetOptions = <Widget>[
+      FriendPage(currentUser: widget.currentUser),
+      const UnlockPage(),
+      const LockMap(),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('IoT Bike Lock Home Page'),
       ),
-      body: const LockMap(),
+      body: widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -31,6 +49,9 @@ class _HomePageState extends State<HomePage> {
             label: 'Map',
           ),
         ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blueAccent,
+        onTap: _onItemTapped,
       ),
     );
   }
