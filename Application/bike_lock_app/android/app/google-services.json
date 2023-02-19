@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "448437059603",
+    "firebase_url": "https://iot-bike-lock-default-rtdb.firebaseio.com",
     "project_id": "iot-bike-lock",
     "storage_bucket": "iot-bike-lock.appspot.com"
   },
@@ -29,6 +30,13 @@
             {
               "client_id": "448437059603-28u7pdlf9lqgm23lluestbj581m2c3un.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "448437059603-i52c5con5m4i66prbddguec24oqgv8f1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bikeLockApp"
+              }
             }
           ]
         }
