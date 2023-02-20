@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:bike_lock_app/user.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,9 +26,6 @@ class _FriendPageState extends State<FriendPage> {
   @override
   Widget build(BuildContext context) {
     User displayUser = widget.currentUser;
-
-    var friends = displayUser.friends!['friends'];
-    var requests = displayUser.friends!['request_in'];
 
     return Scaffold(
       body: showDialog
@@ -66,10 +65,8 @@ class _FriendPageState extends State<FriendPage> {
                           onPressed: () {
                             setState(() {
                               showDialog = false;
-                              requestUser(
-                                  friendController.text,
-                                  displayUser.username ?? "",
-                                  requests.length + 1);
+                              requestUser(friendController.text,
+                                  displayUser.username ?? "");
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -88,45 +85,93 @@ class _FriendPageState extends State<FriendPage> {
                   displayUser.username ?? "",
                   style: const TextStyle(fontSize: 48),
                 ),
-                Text(
-                  "Friends: ${friends.toString()}",
-                  style: const TextStyle(fontSize: 24),
+                const Text(
+                  "Friends",
+                  style: TextStyle(fontSize: 24),
                 ),
                 Expanded(
-                  child: ListView.builder(
-                      itemCount: friends.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return ListTile(
-                            leading: const Icon(Icons.list),
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Color.fromARGB(255, 235, 94, 84),
-                              ),
-                              onPressed: () => _removeItem(friends, index),
-                            ),
-                            title: Text(friends?['${index + 1}'] ?? ""));
-                      }),
+                  child: StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection("Users")
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<dynamic> snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Text(
+                          'No Data...',
+                        );
+                      } else {
+                        Map<String, dynamic> userData =
+                            snapshot.data.docs[0].data();
+                        var friendsList =
+                            parse(userData['Friends']['friends'].toString());
+                        if (friendsList.isNotEmpty) {
+                          return ListView.builder(
+                            itemCount: friendsList.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                  leading: const Icon(Icons.list),
+                                  trailing: IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Color.fromARGB(255, 235, 94, 84),
+                                    ),
+                                    onPressed: () =>
+                                        _removeItem(friendsList, index),
+                                  ),
+                                  title: Text(friendsList[index] ?? ""));
+                            },
+                          );
+                        } else {
+                          return const Text("NO FRIENDS");
+                        }
+                      }
+                    },
+                  ),
                 ),
                 const Text(
                   "Requests",
                   style: TextStyle(fontSize: 24),
                 ),
                 Expanded(
-                  child: ListView.builder(
-                      itemCount: requests.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return ListTile(
-                            leading: const Icon(Icons.list),
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Color.fromARGB(255, 235, 94, 84),
-                              ),
-                              onPressed: () => _removeItem(friends, index),
-                            ),
-                            title: Text(requests?['${index + 1}'] ?? ""));
-                      }),
+                  child: StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection("Users")
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<dynamic> snapshot) {
+                      if (!snapshot.hasData) {
+                        return const CircularProgressIndicator();
+                      } else {
+                        Map<String, dynamic> userData =
+                            snapshot.data.docs[0].data();
+
+                        var requests =
+                            parse(userData['Friends']['request_in'].toString());
+
+                        if (requests.isNotEmpty) {
+                          return ListView.builder(
+                            itemCount: requests.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                  leading: const Icon(Icons.list),
+                                  trailing: IconButton(
+                                    icon: const Icon(
+                                      Icons.person_add,
+                                      color: Colors.greenAccent,
+                                    ),
+                                    onPressed: () => addUser(requests[index],
+                                        displayUser.username ?? ""),
+                                  ),
+                                  title: Text(requests[index]));
+                            },
+                          );
+                        } else {
+                          return const Text("No Requests!");
+                        }
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -144,10 +189,23 @@ class _FriendPageState extends State<FriendPage> {
     });
   }
 
-  Future<void> requestUser(String username, String currentUser, int ID) async {
+  Future<void> requestUser(String username, String currentUser) async {
     if (await checkUserExists(username)) {
       final docUser =
           FirebaseFirestore.instance.collection("Users").doc(username);
+
+      final ref = FirebaseFirestore.instance
+          .collection("Users")
+          .doc(username)
+          .withConverter(
+            fromFirestore: User.fromFirestore,
+            toFirestore: (User user, _) => user.toFirestore(),
+          );
+
+      final docSnap = await ref.get();
+      final user = docSnap.data();
+
+      int ID = user?.friends!['request_in'].length;
 
       final userData = {
         "Friends": {
@@ -172,5 +230,80 @@ class _FriendPageState extends State<FriendPage> {
     final user = docSnap.data();
 
     return user != null;
+  }
+
+  List parse(String jsonString) {
+    String check = jsonString.substring(
+        jsonString.indexOf('{') + 1, jsonString.indexOf('}'));
+    if (!check.contains(':')) {
+      return [];
+    } else {
+      var data = check.split(',');
+      var dataToReturn = [];
+      for (String entry in data) {
+        dataToReturn.add(entry.split(':')[1]);
+      }
+      return dataToReturn;
+    }
+  }
+
+  void addUser(String userToAdd, String currentUser) async {
+    final docUser =
+        FirebaseFirestore.instance.collection("Users").doc(currentUser);
+
+    final ref = FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUser)
+        .withConverter(
+          fromFirestore: User.fromFirestore,
+          toFirestore: (User user, _) => user.toFirestore(),
+        );
+
+    final docSnap = await ref.get();
+    final user = docSnap.data();
+
+    int ID = user?.friends!['friends'].length + 1;
+
+    final userData = {
+      "Friends": {
+        "friends": {'$ID': userToAdd},
+      }
+    };
+    removeRequest(userToAdd, currentUser);
+    await docUser.set(userData, SetOptions(merge: true));
+  }
+
+  void removeRequest(String userToRemove, String currentUser) async {
+    final docUser =
+        FirebaseFirestore.instance.collection("Users").doc(currentUser);
+
+    final ref = FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUser)
+        .withConverter(
+          fromFirestore: User.fromFirestore,
+          toFirestore: (User user, _) => user.toFirestore(),
+        );
+
+    final docSnap = await ref.get();
+    final user = docSnap.data();
+
+    var requests = user?.friends!['request_in'];
+
+    String req = requests.toString();
+
+    String check = req.substring(req.indexOf('{') + 1, req.indexOf('}'));
+
+    var data = check.split(',');
+    String dataToReturn = "{";
+    for (String entry in data) {
+      String ID = entry.split(':')[0];
+      String user = entry.split(':')[1];
+      if (user != userToRemove) {
+        dataToReturn = "$dataToReturn$ID: $user, ";
+      }
+      dataToReturn = "$dataToReturn}";
+      debugPrint(dataToReturn);
+    }
   }
 }
