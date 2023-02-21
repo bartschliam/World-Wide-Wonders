@@ -1,8 +1,5 @@
 #include <FirebaseESP32.h>
-#include "BLEDevice.h"
-#include <BLEUtils.h>
-#include <BLEScan.h>
-#include <BLEAdvertisedDevice.h>
+
 #include <Arduino.h>
 #define LED 2
 // 1. Define the WiFi credentials */
@@ -27,13 +24,7 @@
 FirebaseData firebaseData;
 FirebaseData RfirebaseData;
 
-int r;
-String knownBLEAddresses[] = {"55:c8:d4:47:ac:7c"};
-bool device_found;
-BLEScan* pBLEScan;
-
-void control_led()
-{
+void control_led() {
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
     bool locked = firebaseData.boolData();
     if(locked==true){ digitalWrite(LED, HIGH); }
@@ -41,8 +32,7 @@ void control_led()
   }
 }
 
-void setup()
-{
+void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
 
@@ -60,23 +50,8 @@ void setup()
 
   Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
   
-  // Serial.println("Scanning...");
-  // BLEDevice::init("");
-  // pBLEScan = BLEDevice::getScan();
-  // pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  // pBLEScan->setActiveScan(true);
 }
 
-void loop()
-{
+void loop() {
   control_led();
-  // BLEScanResults foundDevices = pBLEScan->start(30, false);
-  // Serial.print(foundDevices.getCount());
-  // for(int i = 0; i<foundDevices.getCount(); i++) {
-  //   BLEAdvertisedDevice device = foundDevices.getDevice(i);
-  //   int rssi = device.getRSSI();
-  //   Serial.print("RSSI:");
-  //   Serial.print(rssi);
-  // }
-  // pBLEScan->clearResults();
 }
