@@ -24,7 +24,7 @@ void control_led() {
 void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
-
+  Serial.print("[2J");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
