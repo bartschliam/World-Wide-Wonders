@@ -20,16 +20,19 @@
 FirebaseData firebaseData;
 BluetoothSerial SerialBT;
 TinyGPSPlus gps;
+int lastState = 0;
 
 void control_led() {
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
     bool locked = firebaseData.boolData();
-    if(locked==true){ 
+    if(locked==true && lastState!=1){ 
       digitalWrite(LED, HIGH); 
+      lastState = 1;
       Serial.println("Turned LED on.");
     }
-    else { 
+    else if (locked==false && lastState!=2){ 
       digitalWrite(LED, LOW); 
+      lastState = 2;
       Serial.println("Turned LED off.");
     }
   }
@@ -61,6 +64,9 @@ void setup() {
 
 void loop() {
   control_led();
+  Serial.print(gps.location.lat(), 6);
+  Serial.print(F(","));
+  Serial.println(gps.location.lng(), 6);
   if (gps.location.isValid()){
     Serial.print(gps.location.lat(), 6);
     Serial.print(F(","));
