@@ -17,8 +17,7 @@
 #define DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
 
 FirebaseData firebaseData;
-//char date[] = __DATE__;
-//char time[] = __TIME__;
+BluetoothSerial SerialBT;
 
 void control_led() {
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
@@ -48,8 +47,17 @@ void setup() {
 
   Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
   
+  SerialBT.begin('ESP32 Bike Lock');
+  Serial.println("Bluetooth Started! Ready to pair...");
 }
 
 void loop() {
   control_led();
+  if (Serial.available()) {
+    SerialBT.write(Serial.read());
+  }
+  if (SerialBT.available()) {
+    Serial.write(SerialBT.read());
+  }
+  delay(20);
 }
