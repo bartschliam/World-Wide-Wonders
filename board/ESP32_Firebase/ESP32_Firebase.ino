@@ -17,8 +17,8 @@
 #define DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
 
 FirebaseData firebaseData;
-char date[] = __DATE__;
-char time[] = __TIME__;
+//char date[] = __DATE__;
+//char time[] = __TIME__;
 
 void control_led() {
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
@@ -32,8 +32,8 @@ void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
   Serial.println();
-  Serial.println(date);
-  Serial.println(time);
+  Serial.println(__DATE__);
+  Serial.println(__TIME__);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
