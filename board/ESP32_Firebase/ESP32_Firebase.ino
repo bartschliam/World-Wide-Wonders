@@ -84,10 +84,7 @@ void setup() {
   
   //SerialBT.begin("ESP32 Bike Lock");
   Serial.println("Bluetooth Started! Ready to pair...");
-
-  Serial.begin(9600);
-  Serial2.begin(9600);
-  delay(3000);
+  Serial.println(gps.f_get_position(&flat, &flon, &age));
 }
 
 void loop() {
