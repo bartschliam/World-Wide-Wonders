@@ -1,6 +1,7 @@
 #include <FirebaseESP32.h>
 #include <Arduino.h>
 #include "BluetoothSerial.h"
+#include <TinyGPSPlus.h>
 #define LED 2
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
@@ -18,6 +19,7 @@
 
 FirebaseData firebaseData;
 BluetoothSerial SerialBT;
+TinyGPSPlus gps;
 
 void control_led() {
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
@@ -59,4 +61,9 @@ void setup() {
 
 void loop() {
   control_led();
+  if (gps.location.isValid()){
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(F(","));
+    Serial.print(gps.location.lng(), 6);
+  }
 }
