@@ -58,21 +58,33 @@ void setup() {
 
   Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
   
-  //SerialBT.begin("ESP32 Bike Lock");
+  SerialBT.begin("ESP32 Bike Lock");
   Serial.println("Bluetooth Started! Ready to pair...");
 }
 
 void loop() {
   control_led();
-  if (gps.location.isValid())
-  {
-    Serial.print(gps.location.lat(), 6);
-    Serial.print(F(","));
-    Serial.print(gps.location.lng(), 6);
-  }
-  else
-  {
-    Serial.print(F("INVALID"));
-  }
-  Serial.println();
+  int numDevices = SerialBT.available();
+  if (numDevices > 0) {
+    Serial.println("Found devices:");
+    for (int i = 0; i < numDevices; i++) {
+      String deviceName = SerialBT.getName(i);
+      String deviceAddress = SerialBT.getAddress(i);
+      Serial.print("  Name: ");
+      Serial.println(deviceName);
+      Serial.print("  Address: ");
+      Serial.println(deviceAddress);
+    }
+    Serial.println("------------------------");
+  // if (gps.location.isValid())
+  // {
+  //   Serial.print(gps.location.lat(), 6);
+  //   Serial.print(F(","));
+  //   Serial.print(gps.location.lng(), 6);
+  // }
+  // else
+  // {
+  //   Serial.print(F("INVALID"));
+  // }
+  // Serial.println();
 }
