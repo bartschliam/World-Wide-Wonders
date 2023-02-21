@@ -4,6 +4,7 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 #include <Arduino.h>
+#include <WifiCredentials.h>
 #define LED 2
 // 1. Define the WiFi credentials */
 
@@ -22,10 +23,6 @@
 
 // 3. Define the RTDB URL */
 #define DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
-
-// 4. Define the user Email and password that alreadey registerd or added in your project */
-#define USER_EMAIL "bartschliam@gmail.com"
-#define USER_PASSWORD "ce75314d8e2"
 
 // Define Firebase Data object
 FirebaseData firebaseData;
@@ -98,13 +95,13 @@ void setup()
 void loop()
 {
   control_led();
-  BLEScanResults foundDevices = pBLEScan->start(30, false);
-  Serial.print(foundDevices.getCount());
-  for(int i = 0; i<foundDevices.getCount(); i++) {
-    BLEAdvertisedDevice device = foundDevices.getDevice(i);
-    int rssi = device.getRSSI();
-    Serial.print("RSSI:");
-    Serial.print(rssi);
-  }
-  pBLEScan->clearResults();
+  // BLEScanResults foundDevices = pBLEScan->start(30, false);
+  // Serial.print(foundDevices.getCount());
+  // for(int i = 0; i<foundDevices.getCount(); i++) {
+  //   BLEAdvertisedDevice device = foundDevices.getDevice(i);
+  //   int rssi = device.getRSSI();
+  //   Serial.print("RSSI:");
+  //   Serial.print(rssi);
+  // }
+  // pBLEScan->clearResults();
 }
