@@ -1,6 +1,11 @@
 #include <FirebaseESP32.h>
 #include <Arduino.h>
+#include "BluetoothSerial.h"
 #define LED 2
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
 
 #define WIFI_SSID "VODAFONE-B114"
 #define WIFI_PASSWORD "tdE6KAtmqChRYgrX"
@@ -12,8 +17,8 @@
 #define DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
 
 FirebaseData firebaseData;
-char cr[] = __DATE__;
-char ct[] = __TIME__;
+char date[] = __DATE__;
+char time[] = __TIME__;
 
 void control_led() {
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
@@ -27,8 +32,8 @@ void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
   Serial.println();
-  Serial.println(cr);
-  Serial.println(ct);
+  Serial.println(date);
+  Serial.println(time);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
