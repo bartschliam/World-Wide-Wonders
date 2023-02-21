@@ -67,6 +67,7 @@ class _FriendPageState extends State<FriendPage> {
                               showDialog = false;
                               requestUser(friendController.text,
                                   displayUser.username ?? "");
+                              friendController.clear();
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -79,101 +80,120 @@ class _FriendPageState extends State<FriendPage> {
                 ],
               ),
             )
-          : Column(
-              children: [
-                Text(
-                  displayUser.username ?? "",
-                  style: const TextStyle(fontSize: 48),
-                ),
-                const Text(
-                  "Friends",
-                  style: TextStyle(fontSize: 24),
-                ),
-                Expanded(
-                  child: StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection("Users")
-                        .snapshots(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<dynamic> snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Text(
-                          'No Data...',
-                        );
-                      } else {
-                        Map<String, dynamic> userData =
-                            snapshot.data.docs[0].data();
-                        var friendsList =
-                            parse(userData['Friends']['friends'].toString());
-                        if (friendsList.isNotEmpty) {
-                          return ListView.builder(
-                            itemCount: friendsList.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                  leading: const Icon(Icons.list),
-                                  trailing: IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Color.fromARGB(255, 235, 94, 84),
-                                    ),
-                                    onPressed: () =>
-                                        _removeItem(friendsList, index),
-                                  ),
-                                  title: Text(friendsList[index] ?? ""));
-                            },
-                          );
-                        } else {
-                          return const Text("NO FRIENDS");
-                        }
-                      }
-                    },
+          : Center(
+              child: Column(
+                children: [
+                  Text(
+                    displayUser.username ?? "",
+                    style: const TextStyle(fontSize: 48),
                   ),
-                ),
-                const Text(
-                  "Requests",
-                  style: TextStyle(fontSize: 24),
-                ),
-                Expanded(
-                  child: StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection("Users")
-                        .snapshots(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<dynamic> snapshot) {
-                      if (!snapshot.hasData) {
-                        return const CircularProgressIndicator();
-                      } else {
-                        Map<String, dynamic> userData =
-                            snapshot.data.docs[0].data();
-
-                        var requests =
-                            parse(userData['Friends']['request_in'].toString());
-
-                        if (requests.isNotEmpty) {
-                          return ListView.builder(
-                            itemCount: requests.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                  leading: const Icon(Icons.list),
-                                  trailing: IconButton(
-                                    icon: const Icon(
-                                      Icons.person_add,
-                                      color: Colors.greenAccent,
-                                    ),
-                                    onPressed: () => addUser(requests[index],
-                                        displayUser.username ?? ""),
-                                  ),
-                                  title: Text(requests[index]));
-                            },
-                          );
-                        } else {
-                          return const Text("No Requests!");
-                        }
-                      }
-                    },
+                  const Text(
+                    "Friends",
+                    style: TextStyle(fontSize: 24),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('Users')
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<dynamic> snapshot) {
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        } else {
+                          final data = snapshot.data.docs;
+                          int userIndex = 0;
+                          data.forEach((element) {
+                            if (displayUser.username !=
+                                element.data()['Credentials']['username']) {
+                              userIndex++;
+                            }
+                          });
+
+                          Map<String, dynamic> userData =
+                              snapshot.data.docs[userIndex].data();
+                          var friendsList =
+                              parse(userData['Friends']['friends'].toString());
+
+                          if (friendsList.isNotEmpty) {
+                            return ListView.builder(
+                              itemCount: friendsList.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                    leading: const Icon(Icons.list),
+                                    trailing: IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Color.fromARGB(255, 235, 94, 84),
+                                      ),
+                                      onPressed: () =>
+                                          _removeItem(friendsList, index),
+                                    ),
+                                    title: Text(friendsList[index] ?? ""));
+                              },
+                            );
+                          } else {
+                            return const Text("NO FRIENDS");
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                  const Text(
+                    "Requests",
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  Expanded(
+                    child: StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection("Users")
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<dynamic> snapshot) {
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        } else {
+                          final data = snapshot.data.docs;
+                          int userIndex = 0;
+                          data.forEach((element) {
+                            if (displayUser.username !=
+                                element.data()['Credentials']['username']) {
+                              userIndex++;
+                            }
+                          });
+
+                          Map<String, dynamic> userData =
+                              snapshot.data.docs[userIndex].data();
+
+                          var requests = parse(
+                              userData['Friends']['request_in'].toString());
+
+                          if (requests.isNotEmpty) {
+                            return ListView.builder(
+                              itemCount: requests.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                    leading: const Icon(Icons.list),
+                                    trailing: IconButton(
+                                      icon: const Icon(
+                                        Icons.person_add,
+                                        color: Colors.greenAccent,
+                                      ),
+                                      onPressed: () => addUser(requests[index],
+                                          displayUser.username ?? ""),
+                                    ),
+                                    title: Text(requests[index]));
+                              },
+                            );
+                          } else {
+                            return const Text("No Requests!");
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
       floatingActionButton: FloatingActionButton(onPressed: () {
         setState(() {
@@ -205,7 +225,7 @@ class _FriendPageState extends State<FriendPage> {
       final docSnap = await ref.get();
       final user = docSnap.data();
 
-      int ID = user?.friends!['request_in'].length;
+      int ID = user?.friends!['friends'].length + 1;
 
       final userData = {
         "Friends": {
@@ -269,7 +289,9 @@ class _FriendPageState extends State<FriendPage> {
         "friends": {'$ID': userToAdd},
       }
     };
-    removeRequest(userToAdd, currentUser);
+
+    String userToRemove = userToAdd.replaceAll(' ', '');
+    removeRequest(userToRemove, currentUser);
     await docUser.set(userData, SetOptions(merge: true));
   }
 
@@ -295,15 +317,27 @@ class _FriendPageState extends State<FriendPage> {
     String check = req.substring(req.indexOf('{') + 1, req.indexOf('}'));
 
     var data = check.split(',');
-    String dataToReturn = "{";
+    var dataToReturn = {};
+
     for (String entry in data) {
-      String ID = entry.split(':')[0];
-      String user = entry.split(':')[1];
+      String ID = entry.split(':')[0].replaceAll(' ', '');
+      String user = entry.split(':')[1].replaceAll(' ', '');
       if (user != userToRemove) {
-        dataToReturn = "$dataToReturn$ID: $user, ";
+        dataToReturn[ID] = user;
       }
-      dataToReturn = "$dataToReturn}";
-      debugPrint(dataToReturn);
     }
+
+    final friends = user?.friends!['friends'];
+    final reqOut = user?.friends!['request_out'];
+
+    final newInfo = {
+      "Friends": {
+        "friends": friends,
+        "request_in": dataToReturn,
+        "request_out": reqOut
+      }
+    };
+
+    await docUser.update(newInfo);
   }
 }
