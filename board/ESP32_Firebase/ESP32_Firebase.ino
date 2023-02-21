@@ -34,27 +34,18 @@ BLEScan* pBLEScan;
 
 void control_led()
 {
-  // Check if lock is locked
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
     bool locked = firebaseData.boolData();
-    // If lock is locked then turn on LED
-    if(locked==true){
-      digitalWrite(LED, HIGH);
-    }
-    // Else turn off LED
-    else {
-      digitalWrite(LED, LOW);
-    }
+    if(locked==true){ digitalWrite(LED, HIGH); }
+    else { digitalWrite(LED, LOW); }
   }
 }
 
 void setup()
 {
-  // Configure LED to OUTPUT
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
 
-  // Connect to wifi
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
