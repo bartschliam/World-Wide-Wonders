@@ -38,30 +38,6 @@ void control_led() {
   }
 }
 
-void updateSerial(){
-  delay(500);
-  while (Serial.available())  {
-    Serial2.write(Serial.read());//Forward what Serial received to Software Serial Port
-  }
-  while (Serial2.available())  {
-    Serial.write(Serial2.read());//Forward what Software Serial received to Serial Port
-  }
-}
-
-void displayInfo()
-{
-  Serial.print(F("Location: "));
-  if (gps.location.isValid()){
-    Serial.print(gps.location.lat(), 6);
-    Serial.print(F(","));
-    Serial.print(gps.location.lng(), 6);
-  }
-  else
-  {
-    Serial.print(F("INVALID"));
-  }
-}
-
 void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
@@ -84,18 +60,8 @@ void setup() {
   
   //SerialBT.begin("ESP32 Bike Lock");
   Serial.println("Bluetooth Started! Ready to pair...");
-  Serial.println(gps.f_get_position(&flat, &flon, &age));
 }
 
 void loop() {
   control_led();
-  updateSerial();
-  while (Serial2.available() > 0)
-    if (gps.encode(Serial2.read()))
-      displayInfo();
-  if (millis() > 5000 && gps.charsProcessed() < 10)
-  {
-    Serial.println(F("No GPS detected: check wiring."));
-    while (true);
-  }
 }
