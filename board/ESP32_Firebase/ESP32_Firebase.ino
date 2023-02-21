@@ -22,8 +22,14 @@ BluetoothSerial SerialBT;
 void control_led() {
   if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
     bool locked = firebaseData.boolData();
-    if(locked==true){ digitalWrite(LED, HIGH); }
-    else { digitalWrite(LED, LOW); }
+    if(locked==true){ 
+      digitalWrite(LED, HIGH); 
+      Serial.println("Turned LED on.");
+    }
+    else { 
+      digitalWrite(LED, LOW); 
+      Serial.println("Turned LED off.");
+    }
   }
 }
 
@@ -47,17 +53,10 @@ void setup() {
 
   Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
   
-  SerialBT.begin('ESP32 Bike Lock');
+  //SerialBT.begin("ESP32 Bike Lock");
   Serial.println("Bluetooth Started! Ready to pair...");
 }
 
 void loop() {
   control_led();
-  if (Serial.available()) {
-    SerialBT.write(Serial.read());
-  }
-  if (SerialBT.available()) {
-    Serial.write(SerialBT.read());
-  }
-  delay(20);
 }
