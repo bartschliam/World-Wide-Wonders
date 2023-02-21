@@ -4,7 +4,6 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 #include <Arduino.h>
-#include <WifiCredentials.h>
 #define LED 2
 // 1. Define the WiFi credentials */
 
