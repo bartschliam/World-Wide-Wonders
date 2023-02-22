@@ -15,10 +15,7 @@ class _UnlockPageState extends State<UnlockPage> {
     return Scaffold(
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(
-            "Unlock Page",
-            style: mainText,
-          ),
+          const UnlockInfo(),
           ElevatedButton(
             onPressed: () {},
             style: ButtonStyle(
@@ -36,6 +33,29 @@ class _UnlockPageState extends State<UnlockPage> {
           )
         ]),
       ),
+    );
+  }
+}
+
+class UnlockInfo extends StatefulWidget {
+  const UnlockInfo({super.key});
+
+  @override
+  State<UnlockInfo> createState() => _UnlockInfoState();
+}
+
+class _UnlockInfoState extends State<UnlockInfo> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: const [
+        Text(
+          "Unlock Page",
+          style: TextStyle(fontSize: 32),
+        ),
+        Text("Bike Lock Location: "),
+        Text("Bike Lock Owner: ")
+      ],
     );
   }
 }

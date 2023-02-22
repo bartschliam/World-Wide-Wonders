@@ -103,11 +103,13 @@ class _FriendPageState extends State<FriendPage> {
                         } else {
                           final data = snapshot.data.docs;
                           int userIndex = 0;
+                          int count = 0;
                           data.forEach((element) {
-                            if (displayUser.username !=
+                            if (displayUser.username ==
                                 element.data()['Credentials']['username']) {
-                              userIndex++;
+                              userIndex = count;
                             }
+                            count++;
                           });
 
                           Map<String, dynamic> userData =
@@ -154,11 +156,13 @@ class _FriendPageState extends State<FriendPage> {
                         } else {
                           final data = snapshot.data.docs;
                           int userIndex = 0;
+                          int count = 0;
                           data.forEach((element) {
-                            if (displayUser.username !=
+                            if (displayUser.username ==
                                 element.data()['Credentials']['username']) {
-                              userIndex++;
+                              userIndex = count;
                             }
+                            count++;
                           });
 
                           Map<String, dynamic> userData =
