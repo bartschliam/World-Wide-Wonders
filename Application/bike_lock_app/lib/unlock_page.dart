@@ -8,8 +8,34 @@ class UnlockPage extends StatefulWidget {
 }
 
 class _UnlockPageState extends State<UnlockPage> {
+  TextStyle mainText = const TextStyle(fontSize: 32);
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      body: Center(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text(
+            "Unlock Page",
+            style: mainText,
+          ),
+          ElevatedButton(
+            onPressed: () {},
+            style: ButtonStyle(
+              shape: MaterialStateProperty.all(const CircleBorder()),
+              padding: MaterialStateProperty.all(const EdgeInsets.all(20)),
+              backgroundColor: MaterialStateProperty.all(Colors.blue),
+              overlayColor: MaterialStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(MaterialState.pressed)) {
+                  return Colors.blueGrey;
+                }
+                return null;
+              }),
+            ),
+            child: const Icon(Icons.lock_open_outlined),
+          )
+        ]),
+      ),
+    );
   }
 }

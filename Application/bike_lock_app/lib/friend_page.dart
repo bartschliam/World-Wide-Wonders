@@ -123,11 +123,10 @@ class _FriendPageState extends State<FriendPage> {
                                     leading: const Icon(Icons.list),
                                     trailing: IconButton(
                                       icon: const Icon(
-                                        Icons.delete,
-                                        color: Color.fromARGB(255, 235, 94, 84),
+                                        Icons.arrow_circle_up,
+                                        color: Colors.greenAccent,
                                       ),
-                                      onPressed: () =>
-                                          _removeItem(friendsList, index),
+                                      onPressed: () => {},
                                     ),
                                     title: Text(friendsList[index] ?? ""));
                               },
@@ -195,18 +194,15 @@ class _FriendPageState extends State<FriendPage> {
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton(onPressed: () {
-        setState(() {
-          showDialog = true;
-        });
-      }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            showDialog = true;
+          });
+        },
+        child: const Icon(Icons.person_add),
+      ),
     );
-  }
-
-  void _removeItem(List items, int index) {
-    setState(() {
-      items.removeAt(index);
-    });
   }
 
   Future<void> requestUser(String username, String currentUser) async {
