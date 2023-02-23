@@ -102,15 +102,9 @@ class _FriendPageState extends State<FriendPage> {
                           return const CircularProgressIndicator();
                         } else {
                           final data = snapshot.data.docs;
-                          int userIndex = 0;
-                          int count = 0;
-                          data.forEach((element) {
-                            if (displayUser.username ==
-                                element.data()['Credentials']['username']) {
-                              userIndex = count;
-                            }
-                            count++;
-                          });
+                          int userIndex = data.indexWhere((element) =>
+                              displayUser.username ==
+                              element.data()['Credentials']['username']);
 
                           Map<String, dynamic> userData =
                               snapshot.data.docs[userIndex].data();
@@ -155,15 +149,9 @@ class _FriendPageState extends State<FriendPage> {
                           return const CircularProgressIndicator();
                         } else {
                           final data = snapshot.data.docs;
-                          int userIndex = 0;
-                          int count = 0;
-                          data.forEach((element) {
-                            if (displayUser.username ==
-                                element.data()['Credentials']['username']) {
-                              userIndex = count;
-                            }
-                            count++;
-                          });
+                          int userIndex = data.indexWhere((element) =>
+                              displayUser.username ==
+                              element.data()['Credentials']['username']);
 
                           Map<String, dynamic> userData =
                               snapshot.data.docs[userIndex].data();
@@ -182,8 +170,15 @@ class _FriendPageState extends State<FriendPage> {
                                         Icons.person_add,
                                         color: Colors.greenAccent,
                                       ),
-                                      onPressed: () => addUser(requests[index],
-                                          displayUser.username ?? ""),
+                                      onPressed: () async => {
+                                        await addUser(requests[index],
+                                            displayUser.username ?? ""),
+                                        await addUser(
+                                            displayUser.username ?? "",
+                                            requests[index]),
+                                        removeRequest(requests[index],
+                                            displayUser.username ?? "")
+                                      },
                                     ),
                                     title: Text(requests[index]));
                               },
@@ -261,16 +256,16 @@ class _FriendPageState extends State<FriendPage> {
       var data = check.split(',');
       var dataToReturn = [];
       for (String entry in data) {
-        dataToReturn.add(entry.split(':')[1]);
+        dataToReturn.add(entry.split(':')[1].replaceAll(" ", ""));
       }
       return dataToReturn;
     }
   }
 
-  void addUser(String userToAdd, String currentUser) async {
+  Future<void> addUser(String userToAdd, String currentUser) async {
     final docUser =
         FirebaseFirestore.instance.collection("Users").doc(currentUser);
-
+    debugPrint(currentUser);
     final ref = FirebaseFirestore.instance
         .collection("Users")
         .doc(currentUser)
@@ -290,8 +285,6 @@ class _FriendPageState extends State<FriendPage> {
       }
     };
 
-    String userToRemove = userToAdd.replaceAll(' ', '');
-    removeRequest(userToRemove, currentUser);
     await docUser.set(userData, SetOptions(merge: true));
   }
 
@@ -337,6 +330,8 @@ class _FriendPageState extends State<FriendPage> {
         "request_out": reqOut
       }
     };
+
+    debugPrint("$currentUser info: ${newInfo.toString()}");
 
     await docUser.update(newInfo);
   }
