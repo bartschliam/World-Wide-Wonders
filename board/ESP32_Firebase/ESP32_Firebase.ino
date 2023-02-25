@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include "BluetoothSerial.h"
 #include <TinyGPSPlus.h>
+#include <HTTPClient.h>
+#include <Arduino_JSON.h>
 #define LED 2
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
@@ -11,12 +13,9 @@
 #define WIFI_SSID "VODAFONE-B114"
 #define WIFI_PASSWORD "tdE6KAtmqChRYgrX"
 
-// TCD Wifi
-// #define WIFI_SSID "TCD-Wifi"
-// #define WIFI_PASSWORD "password?"
 #define API_KEY "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi"
-#define DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
-
+#define RT_DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" 
+#define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/Locks/Lock_0"
 FirebaseData firebaseData;
 BluetoothSerial SerialBT;
 TinyGPSPlus gps;
@@ -38,12 +37,12 @@ void control_led() {
   }
 }
 
-void setup() {
-  pinMode(LED, OUTPUT);
-  Serial.begin(115200);
-  Serial.println();
+void timeDate() {
   Serial.println(__DATE__);
   Serial.println(__TIME__);
+}
+
+void initWifi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
@@ -55,36 +54,25 @@ void setup() {
   Serial.print("Connected with IP: ");
   Serial.println(WiFi.localIP());
   Serial.println();
+}
 
+void realTime() {
   Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
+}
+
+void firestore() {
   
-  SerialBT.begin("ESP32 Bike Lock");
-  Serial.println("Bluetooth Started! Ready to pair...");
+}
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  Serial.begin(115200);
+  Serial.println();
+  timeDate();
+  initWifi();
+  realTime();
 }
 
 void loop() {
   control_led();
-  int numDevices = SerialBT.available();
-  if (numDevices > 0) {
-    Serial.println("Found devices:");
-    for (int i = 0; i < numDevices; i++) {
-      String deviceName = SerialBT.getName(i);
-      String deviceAddress = SerialBT.getAddress(i);
-      Serial.print("  Name: ");
-      Serial.println(deviceName);
-      Serial.print("  Address: ");
-      Serial.println(deviceAddress);
-    }
-    Serial.println("------------------------");
-  // if (gps.location.isValid())
-  // {
-  //   Serial.print(gps.location.lat(), 6);
-  //   Serial.print(F(","));
-  //   Serial.print(gps.location.lng(), 6);
-  // }
-  // else
-  // {
-  //   Serial.print(F("INVALID"));
-  // }
-  // Serial.println();
 }
