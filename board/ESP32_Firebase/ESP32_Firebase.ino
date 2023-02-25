@@ -3,7 +3,7 @@
 #include "BluetoothSerial.h"
 #include <TinyGPSPlus.h>
 #include <HTTPClient.h>
-#include <Arduino_JSON.h>
+#include <ArduinoJson.h>
 #define LED 2
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
@@ -15,25 +15,25 @@
 
 #define API_KEY "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi"
 #define RT_DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" 
-#define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/Locks/Lock_0"
+#define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/"
+//#define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/Locks/Lock_0"
 FirebaseData firebaseData;
 BluetoothSerial SerialBT;
 TinyGPSPlus gps;
+HTTPClient http;
+DynamicJsonDocument doc(1024);
 int lastState = 0;
 
-void control_led() {
-  if(Firebase.getBool(firebaseData, "/locks/lock0/locked")){
-    bool locked = firebaseData.boolData();
-    if(locked==true && lastState!=1){ 
-      digitalWrite(LED, HIGH); 
-      lastState = 1;
-      Serial.println("Turned LED on.");
-    }
-    else if (locked==false && lastState!=2){ 
-      digitalWrite(LED, LOW); 
-      lastState = 2;
-      Serial.println("Turned LED off.");
-    }
+void control_led(bool value) {
+  if(value && lastState != 1) {
+    Serial.println("Turned LED on.");
+    digitalWrite(LED, HIGH); 
+    lastState = 1;
+  }
+  else if(!value && lastState != 0) {
+    Serial.println("Turned LED off.");
+    digitalWrite(LED, LOW); 
+    lastState = 0;
   }
 }
 
@@ -56,12 +56,27 @@ void initWifi() {
   Serial.println();
 }
 
-void realTime() {
-  Firebase.begin("https://iot-bike-lock-default-rtdb.firebaseio.com/", "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi");
+int hash(String str) {
+  if(str == "Locked") {
+    return 1;
+  }
+  
 }
 
-void firestore() {
-  
+void fireStoreGET(String url, String collection) {
+  http.begin(url);
+  int httpCode = http.GET();
+  String payload = http.getString();
+  deserializeJson(doc, payload);
+  bool locked = false;
+  switch(hash(collection)) {
+    case 1:
+      locked = doc["fields"][collection]["booleanValue"];
+      break;
+    default:
+      Serial.println("Default, error in Firestore GET...");
+  }
+  control_led(locked);
 }
 
 void setup() {
@@ -70,9 +85,9 @@ void setup() {
   Serial.println();
   timeDate();
   initWifi();
-  realTime();
 }
 
 void loop() {
-  control_led();
+  fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
+  delay(5000);
 }
