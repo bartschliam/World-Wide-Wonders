@@ -89,5 +89,5 @@ void setup() {
 
 void loop() {
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
-  delay(5000);
+  delay(1000);
 }
