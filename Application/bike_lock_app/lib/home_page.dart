@@ -25,13 +25,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final List<Widget> widgetOptions = <Widget>[
       FriendPage(currentUser: widget.currentUser),
-      const UnlockPage(),
+      UnlockPage(currentUser: widget.currentUser),
       const LockMap(),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('IoT Bike Lock Home Page'),
+        title: const Text('IoT Bike Lock Application'),
       ),
       body: widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
