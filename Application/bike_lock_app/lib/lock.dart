@@ -2,13 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Lock {
   final String? owner;
-  final String? status;
+  final bool? locked;
+  final String? ID;
   Map<String, dynamic>? coords;
 
   Lock({
     this.owner,
-    this.status,
+    this.ID,
     this.coords,
+    this.locked,
   });
 
   factory Lock.fromFirestore(
@@ -17,16 +19,19 @@ class Lock {
   ) {
     final data = snapshot.data();
     return Lock(
-      owner: data?['Credentials']['username'],
-      status: data?['Credentials']['password'],
-      coords: data?['Friends'],
+      owner: data?['Owner'],
+      coords: data?['Coords'],
+      ID: data?['ID'],
+      locked: data?['Locked'],
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
       if (owner != null) "Owner": owner,
-      if (status != null) "Password": status,
+      if (ID != null) "ID": ID,
+      if (coords != null) "Coords": coords,
+      if (locked != null) "Locked": locked,
     };
   }
 }
