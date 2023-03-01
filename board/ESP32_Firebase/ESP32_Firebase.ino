@@ -1,9 +1,10 @@
 #include <FirebaseESP32.h>
 #include <Arduino.h>
 #include "BluetoothSerial.h"
-#include <TinyGPSPlus.h>
+#include <TinyGPS.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <SoftwareSerial.h>
 #define LED 2
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
@@ -16,13 +17,16 @@
 #define API_KEY "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi"
 #define RT_DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" 
 #define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/"
-//#define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/Locks/Lock_0"
+
 FirebaseData firebaseData;
 BluetoothSerial SerialBT;
-TinyGPSPlus gps;
+TinyGPS gps;
 HTTPClient http;
 DynamicJsonDocument doc(1024);
 int lastState = 0;
+float flat, flon;
+unsigned long age;
+float previousFlat, previousFlon;
 
 void control_led(bool value) {
   if(value && lastState != 1) {
@@ -89,5 +93,16 @@ void setup() {
 
 void loop() {
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
-  delay(1000);
+  //delay(200); 
+  gps.f_get_position(&flat, &flon, &age);
+  if(flat != previousFlat) {
+    Serial.print("Latitude ");
+    Serial.println(flat, 6);
+    previousFlat = flat;
+  }
+  if(flon != previousFlon) {
+    Serial.print("Longitude ");
+    Serial.println(flon, 6);
+    previousFlon = flon;
+  }
 }
