@@ -169,14 +169,8 @@ class _UnlockButtonState extends State<UnlockButton> {
                 style: ButtonStyle(
                   shape: MaterialStateProperty.all(const CircleBorder()),
                   padding: MaterialStateProperty.all(const EdgeInsets.all(20)),
-                  backgroundColor: MaterialStateProperty.all(Colors.blue),
-                  overlayColor:
-                      MaterialStateProperty.resolveWith<Color?>((states) {
-                    if (states.contains(MaterialState.pressed)) {
-                      return Colors.blueGrey;
-                    }
-                    return null;
-                  }),
+                  backgroundColor: MaterialStateProperty.all(
+                      lockData['Locked'] == true ? Colors.blue : Colors.red),
                 ),
                 child: lockData['Locked'] == true
                     ? const Icon(Icons.lock_outline)
@@ -236,19 +230,27 @@ class _MyLockState extends State<MyLock> {
               return const CircularProgressIndicator();
             } else {
               final locks = snapshot.data.docs;
-
+              bool isSecondOwner = false;
               var myLock;
               locks.forEach((lock) {
                 if (lock['Owner'] == widget.currentUser.username) {
+                  myLock = lock;
+                }
+                if (lock['SecondOwner'] == widget.currentUser.username) {
+                  isSecondOwner = true;
                   myLock = lock;
                 }
               });
               if (myLock == null) {
                 return const Text("You do not own any lock, reserve one above");
               } else {
+                String displayText = isSecondOwner
+                    ? "You are the second owner of Lock ${myLock['ID']}"
+                    : "You own Lock ${myLock['ID']}";
+
                 return Column(
                   children: [
-                    Text("You own Lock ${myLock['ID']}"),
+                    Text(displayText),
                     UnlockButton(lockID: int.parse(myLock['ID']))
                   ],
                 );
@@ -256,28 +258,5 @@ class _MyLockState extends State<MyLock> {
             }
           }),
     );
-  }
-
-  Future<void> hasLock(String username) async {
-    final helper = FirebaseFirestore.instance.collection("Locks");
-    QuerySnapshot querySnapshot = await helper.get();
-
-    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-
-    for (var lock in allData) {
-      if (getLockOwner(lock.toString()) == username) {
-        setState(() {});
-      }
-    }
-  }
-
-  String getLockOwner(String jsonString) {
-    String rawData = jsonString.substring(
-        jsonString.indexOf('{'), jsonString.lastIndexOf('}'));
-    rawData = rawData.substring(rawData.indexOf("Owner"),
-        rawData.indexOf(',', rawData.indexOf("Owner")));
-
-    var data = rawData.split(':');
-    return (data[1].replaceAll(" ", ""));
   }
 }

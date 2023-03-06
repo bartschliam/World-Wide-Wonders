@@ -26,6 +26,7 @@ class _FriendPageState extends State<FriendPage> {
   @override
   Widget build(BuildContext context) {
     User displayUser = widget.currentUser;
+    bool currentUserHasLock = false;
 
     return Scaffold(
       body: showDialog
@@ -122,7 +123,11 @@ class _FriendPageState extends State<FriendPage> {
                                         Icons.arrow_circle_up,
                                         color: Colors.greenAccent,
                                       ),
-                                      onPressed: () => {},
+                                      onPressed: () => {
+                                        addSecondUser(
+                                            widget.currentUser.username ?? "",
+                                            friendsList[index])
+                                      },
                                     ),
                                     title: Text(friendsList[index] ?? ""));
                               },
@@ -202,6 +207,50 @@ class _FriendPageState extends State<FriendPage> {
         child: const Icon(Icons.person_add),
       ),
     );
+  }
+
+  void addSecondUser(String currentUser, String friendUsername) async {
+    if (await hasLock(currentUser) && !await hasLock(friendUsername)) {
+      final helper = FirebaseFirestore.instance.collection("Locks");
+      QuerySnapshot querySnapshot = await helper.get();
+
+      final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+
+      var ownedLock;
+      for (var lock in allData) {
+        if (getLockOwner(lock.toString()) == currentUser) {
+          ownedLock = lock;
+        }
+      }
+      final docLock = FirebaseFirestore.instance
+          .collection("Locks")
+          .doc("Lock_${ownedLock!['ID'].toString()}");
+      await docLock.update({"SecondOwner": friendUsername});
+    }
+  }
+
+  Future<bool> hasLock(String username) async {
+    final helper = FirebaseFirestore.instance.collection("Locks");
+    QuerySnapshot querySnapshot = await helper.get();
+
+    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+
+    for (var lock in allData) {
+      if (getLockOwner(lock.toString()) == username) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  String getLockOwner(String jsonString) {
+    String rawData = jsonString.substring(
+        jsonString.indexOf('{'), jsonString.lastIndexOf('}'));
+    rawData = rawData.substring(rawData.indexOf("Owner"),
+        rawData.indexOf(',', rawData.indexOf("Owner")));
+
+    var data = rawData.split(':');
+    return (data[1].replaceAll(" ", ""));
   }
 
   Future<void> requestUser(String username, String currentUser) async {
