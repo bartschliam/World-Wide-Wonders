@@ -7,7 +7,11 @@
 #include <SoftwareSerial.h>
 #include <WiFi.h>
 #include "esp_wpa2.h"
-#define LED 2
+#include "TinyGPS++.h"
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEScan.h>
+#include <BLEAdvertisedDevice.h>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -20,15 +24,16 @@
 #define RT_DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" 
 #define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/"
 
+#define LED 2
 FirebaseData firebaseData;
 BluetoothSerial SerialBT;
-TinyGPS gps;
+SoftwareSerial serial_connection(12, 13);
+TinyGPSPlus gps;
 HTTPClient http;
 DynamicJsonDocument doc(1024);
 int lastState = 0;
-float flat, flon;
-unsigned long age;
-float previousFlat, previousFlon;
+int scanTime = 5;
+BLEScan* pBLEScan;
 
 void control_led(bool value) {
   if(value && lastState != 1) {
@@ -85,25 +90,32 @@ void fireStoreGET(String url, String collection) {
   control_led(locked);
 }
 
+class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
+  void onResult(BLEAdvertisedDevice advertisedDevice) {
+    Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
+  }
+};
+
 void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
-  Serial.println();
   timeDate();
   initWifi();
+  Serial.println("Scanning...");
+  BLEDevice::init("");
+  pBLEScan = BLEDevice::getScan();
+  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+  pBLEScan->setActiveScan(true);
+  pBLEScan->setInterval(100);
+  pBLEScan->setWindow(99);
 }
 
 void loop() {
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
-  gps.f_get_position(&flat, &flon, &age);
-  if(flat != previousFlat) {
-    Serial.print("Latitude ");
-    Serial.println(flat, 6);
-    previousFlat = flat;
-  }
-  if(flon != previousFlon) {
-    Serial.print("Longitude ");
-    Serial.println(flon, 6);
-    previousFlon = flon;
-  }
+  BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
+  Serial.print("Devices found: ");
+  Serial.print(foundDevices.getCount());
+  Serial.println("Scan done!");
+  pBLEScan->clearResults();
+  delay(2000);
 }
