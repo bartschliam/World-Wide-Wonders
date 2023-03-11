@@ -5,6 +5,8 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <SoftwareSerial.h>
+#include <WiFi.h>
+#include "esp_wpa2.h"
 #define LED 2
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
@@ -93,7 +95,6 @@ void setup() {
 
 void loop() {
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
-  //delay(200); 
   gps.f_get_position(&flat, &flon, &age);
   if(flat != previousFlat) {
     Serial.print("Latitude ");
