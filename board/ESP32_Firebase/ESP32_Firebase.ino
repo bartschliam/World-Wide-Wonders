@@ -21,7 +21,7 @@
 #define WIFI_PASSWORD "tdE6KAtmqChRYgrX"
 
 #define API_KEY "pzmetHjgzVn2I3lSQoevlBWGxZb7eR4h9dfVgGGi"
-#define RT_DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/" 
+#define RT_DATABASE_URL "https://iot-bike-lock-default-rtdb.firebaseio.com/"
 #define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/"
 
 #define LED 2
@@ -33,27 +33,32 @@ HTTPClient http;
 DynamicJsonDocument doc(1024);
 int lastState = 0;
 int scanTime = 5;
-BLEScan* pBLEScan;
+BLEScan *pBLEScan;
 
-void control_led(bool value) {
-  if(value && lastState != 1) {
+void control_led(bool value)
+{
+  if (value && lastState != 1)
+  {
     Serial.println("Turned LED on.");
-    digitalWrite(LED, HIGH); 
+    digitalWrite(LED, HIGH);
     lastState = 1;
   }
-  else if(!value && lastState != 0) {
+  else if (!value && lastState != 0)
+  {
     Serial.println("Turned LED off.");
-    digitalWrite(LED, LOW); 
+    digitalWrite(LED, LOW);
     lastState = 0;
   }
 }
 
-void timeDate() {
+void timeDate()
+{
   Serial.println(__DATE__);
   Serial.println(__TIME__);
 }
 
-void initWifi() {
+void initWifi()
+{
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
@@ -67,36 +72,65 @@ void initWifi() {
   Serial.println();
 }
 
-int hash(String str) {
-  if(str == "Locked") {
+int hash(String str)
+{
+  if (str == "Locked")
+  {
     return 1;
   }
-  
 }
 
-void fireStoreGET(String url, String collection) {
+void fireStoreGET(String url, String collection)
+{
   http.begin(url);
   int httpCode = http.GET();
   String payload = http.getString();
   deserializeJson(doc, payload);
   bool locked = false;
-  switch(hash(collection)) {
-    case 1:
-      locked = doc["fields"][collection]["booleanValue"];
-      break;
-    default:
-      Serial.println("Default, error in Firestore GET...");
+  switch (hash(collection))
+  {
+  case 1:
+    locked = doc["fields"][collection]["booleanValue"];
+    break;
+  default:
+    Serial.println("Default, error in Firestore GET...");
   }
   control_led(locked);
 }
 
-class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
-  void onResult(BLEAdvertisedDevice advertisedDevice) {
-    Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
+class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
+{
+  void onResult(BLEAdvertisedDevice advertisedDevice)
+  {
+    Serial.print("Advertised Device: ");
+    Serial.print(advertisedDevice.getAddress().toString().c_str());
+    Serial.print(" ");
+    if (advertisedDevice.haveName())
+    {
+      Serial.print("Name: ");
+      Serial.print(advertisedDevice.getName().c_str());
+    }
+    if (advertisedDevice.haveAppearance())
+    {
+      Serial.print(", Appearance: 0x");
+      Serial.print(advertisedDevice.getAppearance(), HEX);
+    }
+    if (advertisedDevice.haveManufacturerData())
+    {
+      Serial.print(", Manufacturer: ");
+      std::string manuf_data = advertisedDevice.getManufacturerData();
+      for (int i = 0; i < manuf_data.length(); i++)
+      {
+        Serial.printf("%02X ", manuf_data[i]);
+      }
+    }
+    Serial.print(", RSSI: ");
+    Serial.println(advertisedDevice.getRSSI());
   }
 };
 
-void setup() {
+void setup()
+{
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
   timeDate();
@@ -110,7 +144,8 @@ void setup() {
   pBLEScan->setWindow(99);
 }
 
-void loop() {
+void loop()
+{
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
   BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
   Serial.print("Devices found: ");
