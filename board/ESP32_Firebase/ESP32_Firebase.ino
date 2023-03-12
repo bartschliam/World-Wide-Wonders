@@ -12,6 +12,9 @@
 #include <BLEUtils.h>
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
+#include <BluetoothSerial.h>
+#include "esp_bt_main.h"
+#include "esp_bt_device.h"
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -25,6 +28,8 @@
 #define FS_DATABASE_URL "https://firestore.googleapis.com/v1/projects/iot-bike-lock/databases/(default)/documents/"
 
 #define LED 2
+#define SERVICE_UUID "4fafc201-afb5-459e-8fcc-c5c9c331914b"
+#define CHARACTERISTIC_UUID "beb5483e-37e1-4688-b7f5-ea07361b26a8"
 FirebaseData firebaseData;
 BluetoothSerial SerialBT;
 SoftwareSerial serial_connection(12, 13);
@@ -110,20 +115,6 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
       Serial.print("Name: ");
       Serial.print(advertisedDevice.getName().c_str());
     }
-    if (advertisedDevice.haveAppearance())
-    {
-      Serial.print(", Appearance: 0x");
-      Serial.print(advertisedDevice.getAppearance(), HEX);
-    }
-    if (advertisedDevice.haveManufacturerData())
-    {
-      Serial.print(", Manufacturer: ");
-      std::string manuf_data = advertisedDevice.getManufacturerData();
-      for (int i = 0; i < manuf_data.length(); i++)
-      {
-        Serial.printf("%02X ", manuf_data[i]);
-      }
-    }
     Serial.print(", RSSI: ");
     Serial.println(advertisedDevice.getRSSI());
   }
@@ -136,21 +127,24 @@ void setup()
   timeDate();
   initWifi();
   Serial.println("Scanning...");
-  BLEDevice::init("");
-  pBLEScan = BLEDevice::getScan();
-  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  pBLEScan->setActiveScan(true);
-  pBLEScan->setInterval(100);
-  pBLEScan->setWindow(99);
+  BLEDevice::init("MyESP32");
+  BLEServer *pServer = BLEDevice::createServer();
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+  BLECharacteristic *pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+  pCharacteristic->setValue("Hello World says Liam");
+  pService->start();
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);
+  pAdvertising->setMinPreferred(0x12);
+  BLEDevice::startAdvertising();
+
 }
 
 void loop()
 {
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
-  BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
-  Serial.print("Devices found: ");
-  Serial.print(foundDevices.getCount());
-  Serial.println("Scan done!");
-  pBLEScan->clearResults();
+  
   delay(2000);
 }
