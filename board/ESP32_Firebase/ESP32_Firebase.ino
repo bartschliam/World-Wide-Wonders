@@ -39,7 +39,8 @@ HTTPClient http;
 DynamicJsonDocument doc(1024);
 int lastState = 0;
 int scanTime = 5;
-BLEScan *pBLEScan;
+bool deviceConnected = false;
+BLEServer *pServer;
 
 void control_led(bool value)
 {
@@ -115,19 +116,27 @@ class MyCallbacks : public BLECharacteristicCallbacks {
   }
 };
 
-void setup()
-{
-  pinMode(LED, OUTPUT);
-  Serial.begin(115200);
-  timeDate();
-  initWifi();
-  Serial.println("Scanning...");
+class MyServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    deviceConnected = true;
+    Serial.println("Device connected...");
+  };
+  void onDisconnect(BLEServer* pServer) {
+    deviceConnected = false;
+    Serial.println("Device disconnected");
+    BLEDevice::stopAdvertising();
+    BLEDevice::startAdvertising();
+  };
+};
+
+void setupBLE() {
   BLEDevice::init("MyESP32");
-  BLEServer *pServer = BLEDevice::createServer();
+  pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
   pCharacteristic->setValue("Hello World says Liam");
-  pCharacteristic->setCallbacks(new MyCallbacks());  
+  pCharacteristic->setCallbacks(new MyCallbacks());
+  pServer->setCallbacks(new MyServerCallbacks);
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
@@ -137,8 +146,17 @@ void setup()
   BLEDevice::startAdvertising();
 }
 
+void setup()
+{
+  pinMode(LED, OUTPUT);
+  Serial.begin(115200);
+  timeDate();
+  initWifi();
+  setupBLE();
+}
+
 void loop()
 {
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
-  delay(2000);
+  delay(1000);
 }
