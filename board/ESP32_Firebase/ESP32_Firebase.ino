@@ -15,6 +15,7 @@
 #include <BluetoothSerial.h>
 #include "esp_bt_main.h"
 #include "esp_bt_device.h"
+#include <string>
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -103,20 +104,14 @@ void fireStoreGET(String url, String collection)
   control_led(locked);
 }
 
-class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
-{
-  void onResult(BLEAdvertisedDevice advertisedDevice)
-  {
-    Serial.print("Advertised Device: ");
-    Serial.print(advertisedDevice.getAddress().toString().c_str());
-    Serial.print(" ");
-    if (advertisedDevice.haveName())
-    {
-      Serial.print("Name: ");
-      Serial.print(advertisedDevice.getName().c_str());
+class MyCallbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    std::string value = pCharacteristic->getValue();
+    Serial.print("Received value: ");
+    for(int i=0; i<value.length(); i++) {
+      Serial.print(value[i]);
     }
-    Serial.print(", RSSI: ");
-    Serial.println(advertisedDevice.getRSSI());
+    Serial.println();
   }
 };
 
@@ -130,8 +125,9 @@ void setup()
   BLEDevice::init("MyESP32");
   BLEServer *pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
-  BLECharacteristic *pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+  BLECharacteristic *pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
   pCharacteristic->setValue("Hello World says Liam");
+  pCharacteristic->setCallbacks(new MyCallbacks());  
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
@@ -139,12 +135,10 @@ void setup()
   pAdvertising->setMinPreferred(0x06);
   pAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
-
 }
 
 void loop()
 {
   fireStoreGET(String(FS_DATABASE_URL) + "Locks/" + "Lock_0/", "Locked");
-  
   delay(2000);
 }
