@@ -30,6 +30,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   google_maps_flutter: ^2.2.3
+  location: ^4.2.0
   flutter:
     sdk: flutter
 

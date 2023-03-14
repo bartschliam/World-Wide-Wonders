@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:bike_lock_app/lock.dart';
 import 'package:bike_lock_app/user.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:location/location.dart';
 
 class UnlockPage extends StatefulWidget {
   final User currentUser;
@@ -12,36 +15,14 @@ class UnlockPage extends StatefulWidget {
 }
 
 class _UnlockPageState extends State<UnlockPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            AvailableLockList(
-              currentUser: widget.currentUser,
-            ),
-            MyLock(
-              currentUser: widget.currentUser,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+  Location location = new Location();
 
-class AvailableLockList extends StatefulWidget {
-  final User currentUser;
-  const AvailableLockList({super.key, required this.currentUser});
+  late bool _serviceEnabled;
+  late PermissionStatus _permissionGranted;
+  late LocationData _locationData;
+  bool showOutsideProximityMessage = false;
 
-  @override
-  State<AvailableLockList> createState() => _AvailableLockListState();
-}
-
-class _AvailableLockListState extends State<AvailableLockList> {
-  @override
-  Widget build(BuildContext context) {
+  Widget availableLockList() {
     return Expanded(
       child: Column(
         children: [
@@ -114,114 +95,80 @@ class _AvailableLockListState extends State<AvailableLockList> {
     );
   }
 
-  void reserveLock(String username, int lock) async {
-    final docLock =
-        FirebaseFirestore.instance.collection("Locks").doc("Lock_$lock");
-    await docLock.update({"Owner": username});
-  }
-
-  void unReserveLock(String username, int lockID) async {
-    final docLock =
-        FirebaseFirestore.instance.collection("Locks").doc("Lock_$lockID");
-
-    final ref = FirebaseFirestore.instance
-        .collection("Locks")
-        .doc("Lock_$lockID")
-        .withConverter(
-          fromFirestore: Lock.fromFirestore,
-          toFirestore: (Lock lock, _) => lock.toFirestore(),
-        );
-
-    final docSnap = await ref.get();
-    final lock = docSnap.data();
-
-    if (lock?.owner == username) {
-      await docLock.update({"Owner": "-"});
-    }
-  }
-}
-
-class UnlockButton extends StatefulWidget {
-  final int lockID;
-  const UnlockButton({super.key, required this.lockID});
-
-  @override
-  State<UnlockButton> createState() => _UnlockButtonState();
-}
-
-class _UnlockButtonState extends State<UnlockButton> {
-  @override
-  Widget build(BuildContext context) {
+  Widget unlockButton(int lockID, double lockLong, double lockLat) {
     return Expanded(
-      child: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection('Locks').snapshots(),
-          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            if (!snapshot.hasData) {
-              return const CircularProgressIndicator();
-            } else {
-              Map<String, dynamic> lockData =
-                  snapshot.data.docs[widget.lockID].data();
+      child: Column(
+        children: [
+          StreamBuilder(
+              stream:
+                  FirebaseFirestore.instance.collection('Locks').snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                if (!snapshot.hasData) {
+                  return const CircularProgressIndicator();
+                } else {
+                  Map<String, dynamic> lockData =
+                      snapshot.data.docs[lockID].data();
 
-              return ElevatedButton(
-                onPressed: () {
-                  changeLockState(widget.lockID);
-                },
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.all(const CircleBorder()),
-                  padding: MaterialStateProperty.all(const EdgeInsets.all(20)),
-                  backgroundColor: MaterialStateProperty.all(
-                      lockData['Locked'] == true ? Colors.blue : Colors.red),
-                ),
-                child: lockData['Locked'] == true
-                    ? const Icon(Icons.lock_outline)
-                    : const Icon(Icons.lock_open_outlined),
-              );
-            }
-          }),
+                  return ElevatedButton(
+                    onPressed: () async {
+                      _serviceEnabled = await location.serviceEnabled();
+                      if (!_serviceEnabled) {
+                        _serviceEnabled = await location.requestService();
+                        if (!_serviceEnabled) {
+                          return;
+                        }
+                      }
+
+                      _permissionGranted = await location.hasPermission();
+                      if (_permissionGranted == PermissionStatus.denied) {
+                        _permissionGranted = await location.requestPermission();
+                        if (_permissionGranted != PermissionStatus.granted) {
+                          return;
+                        }
+                      }
+                      _locationData = await location.getLocation();
+                      if (withinProximity(
+                          lockLong.toDouble(),
+                          lockLat.toDouble(),
+                          _locationData.longitude ?? 0,
+                          _locationData.latitude ?? 0)) {
+                        changeLockState(lockID);
+                        setState(() {
+                          showOutsideProximityMessage = false;
+                        });
+                      } else {
+                        setState(() {
+                          showOutsideProximityMessage = true;
+                        });
+                      }
+                    },
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.all(const CircleBorder()),
+                      padding:
+                          MaterialStateProperty.all(const EdgeInsets.all(20)),
+                      backgroundColor: MaterialStateProperty.all(
+                          lockData['Locked'] == true
+                              ? Colors.blue
+                              : Colors.red),
+                    ),
+                    child: lockData['Locked'] == true
+                        ? const Icon(Icons.lock_outline)
+                        : const Icon(Icons.lock_open_outlined),
+                  );
+                }
+              }),
+          Text(
+            showOutsideProximityMessage
+                ? "Unable to lock as you are outside proxomity"
+                : "",
+            style: const TextStyle(color: Colors.red),
+          )
+        ],
+      ),
     );
   }
 
-  void changeLockState(int lockID) async {
-    final docLock =
-        FirebaseFirestore.instance.collection("Locks").doc("Lock_$lockID");
-
-    final ref = FirebaseFirestore.instance
-        .collection("Locks")
-        .doc("Lock_$lockID")
-        .withConverter(
-          fromFirestore: Lock.fromFirestore,
-          toFirestore: (Lock lock, _) => lock.toFirestore(),
-        );
-
-    final docSnap = await ref.get();
-    final lock = docSnap.data();
-
-    bool newState;
-
-    if (lock?.locked == true) {
-      newState = false;
-    } else {
-      newState = true;
-    }
-
-    debugPrint(newState.toString());
-
-    await docLock.update({"Locked": newState});
-  }
-}
-
-class MyLock extends StatefulWidget {
-  final User currentUser;
-  const MyLock({super.key, required this.currentUser});
-
-  @override
-  State<MyLock> createState() => _MyLockState();
-}
-
-class _MyLockState extends State<MyLock> {
-  bool userHasLock = true;
-  @override
-  Widget build(BuildContext context) {
+  Widget myLock() {
     return Expanded(
       child: StreamBuilder(
           stream: FirebaseFirestore.instance.collection('Locks').snapshots(),
@@ -251,7 +198,10 @@ class _MyLockState extends State<MyLock> {
                 return Column(
                   children: [
                     Text(displayText),
-                    UnlockButton(lockID: int.parse(myLock['ID']))
+                    unlockButton(
+                        int.parse(myLock['ID']),
+                        myLock['Coords']['Long'].toDouble(),
+                        myLock['Coords']['Lat'].toDouble())
                   ],
                 );
               }
@@ -259,4 +209,72 @@ class _MyLockState extends State<MyLock> {
           }),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          children: [availableLockList(), myLock()],
+        ),
+      ),
+    );
+  }
+}
+
+bool withinProximity(
+    double lockLong, double lockLat, double userLong, double userLat) {
+  return sqrt(pow((userLong - lockLong), 2) + pow((userLat - lockLat), 2)) < 10;
+}
+
+void reserveLock(String username, int lock) async {
+  final docLock =
+      FirebaseFirestore.instance.collection("Locks").doc("Lock_$lock");
+  await docLock.update({"Owner": username});
+}
+
+void unReserveLock(String username, int lockID) async {
+  final docLock =
+      FirebaseFirestore.instance.collection("Locks").doc("Lock_$lockID");
+
+  final ref = FirebaseFirestore.instance
+      .collection("Locks")
+      .doc("Lock_$lockID")
+      .withConverter(
+        fromFirestore: Lock.fromFirestore,
+        toFirestore: (Lock lock, _) => lock.toFirestore(),
+      );
+
+  final docSnap = await ref.get();
+  final lock = docSnap.data();
+
+  if (lock?.owner == username) {
+    await docLock.update({"Owner": "-"});
+  }
+}
+
+void changeLockState(int lockID) async {
+  final docLock =
+      FirebaseFirestore.instance.collection("Locks").doc("Lock_$lockID");
+
+  final ref = FirebaseFirestore.instance
+      .collection("Locks")
+      .doc("Lock_$lockID")
+      .withConverter(
+        fromFirestore: Lock.fromFirestore,
+        toFirestore: (Lock lock, _) => lock.toFirestore(),
+      );
+
+  final docSnap = await ref.get();
+  final lock = docSnap.data();
+
+  bool newState;
+
+  if (lock?.locked == true) {
+    newState = false;
+  } else {
+    newState = true;
+  }
+
+  await docLock.update({"Locked": newState});
 }
