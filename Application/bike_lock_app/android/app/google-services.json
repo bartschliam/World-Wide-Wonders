@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "448437059603",
+    "firebase_url": "https://iot-bike-lock-default-rtdb.firebaseio.com",
+    "project_id": "iot-bike-lock",
+    "storage_bucket": "iot-bike-lock.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:448437059603:android:84f51ee44a15c85fab3fe6",
+        "android_client_info": {
+          "package_name": "com.example.bike_lock_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "448437059603-28u7pdlf9lqgm23lluestbj581m2c3un.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7ww8p_uUpjq-Rlbjgjr03NYxZFdWj8LI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "448437059603-28u7pdlf9lqgm23lluestbj581m2c3un.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "448437059603-i52c5con5m4i66prbddguec24oqgv8f1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bikeLockApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
